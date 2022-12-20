@@ -24,7 +24,7 @@ class Node {
     /**
      * Returns the leaf node that is to be expanded
      */
-    selection = (): Node => {
+    select = (): Node => {
         if (this.isLeaf()) {
             return this;
         }
@@ -36,24 +36,44 @@ class Node {
             return UCT(a) - UCT(b);
         }
         this.children.sort(compare);
-        return this.children[0].selection();
+        return this.children[0].select();
     }
 
-    expandNode = () => {
-        if (!checkNoMoreMoves(this.state)) {
-            for (var i = 0; i < 7; i++) {
-                const gameState = makeMove(this.state, i, this.player);
-                if (gameState !== null) {
-                    this.children.push(new Node(this, i, gameState, this.player));
-                }
+    /**
+     * Create child nodes and select one of them if there are child nodes to be made
+     * Returns a random child node
+     */
+    expand = () => {
+        if (checkNoMoreMoves(this.state)) {
+            return null;
+        }
+
+        for (var i = 0; i < 7; i++) {
+            const gameState = makeMove(this.state, i, this.player);
+            if (gameState !== null) {
+                this.children.push(new Node(this, i, gameState, this.player));
             }
+        }
+        if (this.isLeaf()) {
+            return null;
+        }
+
+        return this.children[Math.floor(Math.random() * this.children.length)];
+    }
+
+    simulate = () => {
+        var gameState = this.state;
+
+        while (!checkNoMoreMoves(gameState)) {
+            
         }
     }
 
-    update = (win: boolean) => {
+    update = (updateAmount: number) => {
         this.visits++;
-        if (win) {
-            this.wins++;
+        this.wins += updateAmount;
+        if (!this.isRoot()) {
+            this.parent?.update(updateAmount);
         }
     }
 
